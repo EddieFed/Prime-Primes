@@ -1,3 +1,11 @@
+## | Generated files from scripts | ##
+primes/
+bernoulli_numerators/
+regular_primes/
+*.txt
+
+## | Auto generated for Python | ##
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
