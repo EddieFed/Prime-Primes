@@ -16,21 +16,6 @@ of primes to be generated without nearly as much memory overhead
 """
 
 def sieve(n: int) -> np.ndarray:
-    """
-    Returns a boolean array where the index is the number
-    and the boolean at the index determines if that index value is prime
-
-    Parameters
-    ----------
-    n : int
-        Upper limit to generate primes
-
-    Returns
-    -------
-    out : ndarray
-        Array determining primes of the array indicies
-    """
-
     bools = np.full(n + 1, True)
     bools[0] = False
     bools[1] = False

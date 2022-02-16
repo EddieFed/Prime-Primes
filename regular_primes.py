@@ -32,7 +32,7 @@ with open("primes.txt") as file2:
         primes.append(int(line2))
 
 # Determine the largest prime which we are allowed to check!
-p_3 = len(bernoulli_n)*2 - 3
+p_3 = len(bernoulli_n)*2 + 3
 
 regular_primes = []
 for p in primes:
@@ -72,7 +72,7 @@ with open("reg.txt", "w+") as file:
             file.write("%s\n" % str(reg))
 
 
-# Below is the method for checkinf regularity from https://oeis.org/A007703
+# Below is the method for checking regularity from https://oeis.org/A007703
 #
 # from sympy import prime, isprime, bernoulli
 #
