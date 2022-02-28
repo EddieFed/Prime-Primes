@@ -1,0 +1,180 @@
+\documentclass[11pt]{article}
+\usepackage[paperwidth=10.2in,paperheight=11.7in]{geometry}
+
+
+\usepackage{framed}
+
+\usepackage{amsmath, amssymb}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{graphicx}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{12pt}
+\setlength{\voffset}{-30pt}
+\setlength{\hoffset}{-40pt}
+\setlength{\textwidth}{600pt}
+\setlength{\textheight}{720pt}
+\setlength{\marginparwidth}{5pt}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{EddiePythonStyle}{
+    backgroundcolor = \color{backcolour},
+    commentstyle = \color{codegreen},
+    keywordstyle = \color{magenta},
+    numberstyle = \tiny\color{codegray},
+    stringstyle = \color{codepurple},
+    basicstyle = \ttfamily\footnotesize,
+    breakatwhitespace = false,         
+    breaklines = true,                 
+    captionpos = b,                    
+    keepspaces = true,                 
+    numbers = left,                    
+    numbersep = 6pt,                  
+    showspaces = false,                
+    showstringspaces = false,
+    showtabs = false,                  
+    tabsize = 2,
+    language = Python,
+    frame = single,
+    title = {Python code to generate Bernoulli numbers as well as using them to check if a prime is regular}
+}
+
+\newcommand{\genlegendre}[4]{%
+    \genfrac{(}{)}{}{#1}{#3}{#4}%
+    \if\relax\detokenize{#2}\relax\else_{\!#2}\fi
+}
+\newcommand{\legendre}[3][]{\genlegendre{}{#1}{#2}{#3}}
+\newcommand{\dlegendre}[3][]{\genlegendre{0}{#1}{#2}{#3}}
+\newcommand{\tlegendre}[3][]{\genlegendre{1}{#1}{#2}{#3}}
+
+\begin{document}
+    \lstset{style=EddiePythonStyle}
+    \begin{lstlisting}
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from fractions import Fraction as Fr
+
+"""
+bernoulli_num(n) generates the first n bernoulli numbers and stiores only the even bernoulli number
+numerators (B(k) where k = 2n) in a file names bernoulli.txt. This script is a slightly modified
+version of the code found at https://rosettacode.org/wiki/Bernoulli_numbers#Python. Personally, I
+didn't have any use for the denominator of the bernoulli numbers so I simply ignore them. This is
+much more optimal for space, however, the algorithm is still stunted in terms of speed since it's
+practically exponential, taking nearly 9 hours to generate B(0) -> B(10,000) on an intel i7-6700k
+"""
+
+n = 1000    # Number of bernoulli numbers to generate.
+            # The numerators wil be written to bernoulli.txt
+
+def bernoulli_generator():
+    A, m = [], 0
+    while True:
+        A.append(Fr(1, m+1))
+        for j in range(m, 0, -1):
+            A[j-1] = j*(A[j-1] - A[j])
+        yield A[0] # (which is Bm)
+        m += 1
+
+def bernoulli_num(n: int, to_file = True) -> list[int]:
+    bn = [ix for ix in zip(range(n), bernoulli_generator())]
+    bn = [(i, b) for i,b in bn if b]
+
+    if to_file:
+        with open("bernoulli.txt", "w+") as file:
+            index = 0
+            for i, b in bn:
+                # print('B(%2i) = %*i/%i' % (i, width, b.numerator, b.denominator))
+                if (index > 1):
+                    file.write("%s\n" % str(b.numerator))
+                index += 1
+    else:
+        _bn = []
+        for i, b in bn:
+            _bn.append(b.numerator)
+        return _bn
+    \end{lstlisting}
+
+    \newpage
+    \lstset{style=EddiePythonStyle}
+    \begin{lstlisting}
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+
+"""
+This is a standalone script not meant to be called independently. This script reads
+in all primes generated from sieve() and all bernoulli number numerators from
+bernoulli_num(). It will spit out a new text file named regular.txt which contains
+only regular prime numbers.
+
+Regular Primes:
+    Def => Prime numbers p which do not divide the numerator of any bernoulli number B(k)
+    for all k where k = 2n and k <= p-3.
+
+    For more info see: https://oeis.org/A007703
+"""
+
+# If neither file exists, abort!
+if (not os.path.exists("bernoulli.txt") or not os.path.exists("primes.txt")):
+    print("Please ensure that bernoulli.txt and primes.txt are in the root directory!")
+    exit()
+
+bernoulli_n = []
+with open("bernoulli.txt") as file:
+    for line in file:
+        bernoulli_n.append(int(line))
+
+primes = []
+with open("primes.txt") as file2:
+    for line2 in file2:
+        primes.append(int(line2))
+
+# Determine the largest prime which we are allowed to check!
+p_3 = len(bernoulli_n)*2 + 3
+
+regular_primes = []
+for p in primes:
+    if (p <= p_3):
+        if (p-3 >= 0):  # This will exlude 2 since B(2-3) is not a valid bernoulli number
+            is_reg = True
+            # print(f"Checking if {p} is regular")
+
+            # Check the divisibility of all even bernoulli numbers less than p-3
+            index = 2 
+            for b in bernoulli_n:
+
+                # Only check B(k) for 2, 4, 6, ..., p-3
+                if (index > p-3):
+                    break
+
+                # If p divides B(k), than it is not a regular prime
+                if (b % p == 0):
+                    is_reg = False
+                    break
+
+                # This is just to keep track of p < p-3
+                index += 2
+        else:
+            is_reg = False
+
+        if (is_reg):
+            # print(f"{p} is regular")
+            regular_primes.append(p)
+
+    else:
+        break
+
+# Dump it all to a file!
+with open("reg.txt", "w+") as file:
+    for reg in regular_primes:
+            file.write("%s\n" % str(reg))
+    \end{lstlisting}
+
+\end{document}
+

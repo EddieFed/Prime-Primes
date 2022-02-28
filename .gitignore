@@ -2,7 +2,10 @@
 primes/
 bernoulli_numerators/
 regular_primes/
+.old/
 *.txt
+*.pdf
+*.aux
 
 ## | Auto generated for Python | ##
 
